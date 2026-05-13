@@ -122,11 +122,11 @@ dedupe_roots() {
     abs="$(cd "$r" 2>/dev/null && pwd -P)" || continue
 
     case "$seen" in
-      *"|$abs|"*) ;;
-      *)
-        seen="${seen}${abs}|"
-        out+=("$abs")
-        ;;
+    *"|$abs|"*) ;;
+    *)
+      seen="${seen}${abs}|"
+      out+=("$abs")
+      ;;
     esac
   done
 
@@ -137,31 +137,51 @@ print_matches_only() {
   local pattern="$1"
   local file="$2"
 
-  grep -Eo "$pattern" "$file" 2>/dev/null \
-    | sed 's/[[:space:]]*$//' \
-    | sort -u \
-    | head -30 \
-    | sed 's/^/  一致: /' \
-    || true
+  grep -Eo "$pattern" "$file" 2>/dev/null |
+    sed 's/[[:space:]]*$//' |
+    sort -u |
+    head -30 |
+    sed 's/^/  一致: /' ||
+    true
 }
 
 is_ai_or_editor_config_file() {
   local f="$1"
 
   case "$f" in
-    */.claude/*) return 0 ;;
-    */.vscode/*) return 0 ;;
-    */.github/workflows/*.yml) return 0 ;;
-    */.github/workflows/*.yaml) return 0 ;;
-    */.mcp.json) return 0 ;;
-    */mcp.json) return 0 ;;
-    */Library/Application\ Support/Code/User/*) return 0 ;;
-    */Library/Application\ Support/Cursor/User/*) return 0 ;;
-    */Library/Application\ Support/Windsurf/User/*) return 0 ;;
-    */.config/Code/User/*) return 0 ;;
-    */.config/Cursor/User/*) return 0 ;;
-    */.config/Windsurf/User/*) return 0 ;;
-    *) return 1 ;;
+  */.claude/*) return 0 ;;
+  */.vscode/*) return 0 ;;
+  */.github/workflows/*.yml) return 0 ;;
+  */.github/workflows/*.yaml) return 0 ;;
+  */.mcp.json) return 0 ;;
+  */mcp.json) return 0 ;;
+  */Library/Application\ Support/Code/User/*) return 0 ;;
+  */Library/Application\ Support/Cursor/User/*) return 0 ;;
+  */Library/Application\ Support/Windsurf/User/*) return 0 ;;
+  */.config/Code/User/*) return 0 ;;
+  */.config/Cursor/User/*) return 0 ;;
+  */.config/Windsurf/User/*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+is_dependency_payload_file() {
+  local f="$1"
+
+  case "$f" in
+  */node_modules/*) return 0 ;;
+  */vendor/*) return 0 ;;
+  *) return 1 ;;
+  esac
+}
+
+is_github_workflow_file() {
+  local f="$1"
+
+  case "$f" in
+  */.github/workflows/*.yml) return 0 ;;
+  */.github/workflows/*.yaml) return 0 ;;
+  *) return 1 ;;
   esac
 }
 
@@ -190,6 +210,7 @@ else
     "$HOME/code"
     "$HOME/company"
     "$HOME/Documents"
+    "$HOME/Git"
   )
 
   while IFS= read -r r; do
@@ -211,9 +232,12 @@ STRONG_IOC_PATTERN='A Mini Shai-Hulud has Appeared|filev2[.]getsession[.]org|see
 # Presence means "review exact package/version/install timing", not "infected".
 RISKY_PACKAGE_PATTERN='@tanstack/|@uipath/|@mistralai/|@squawk/|@tallyui/|@beproduct/|@draftlab/|@draftauth/|@taskflow-corp/|@tolka/|@opensearch-project/|guardrails-ai|intercom-client|@sap/cds|@sap/cds-dk|(^|[^A-Za-z0-9_-])lightning([^A-Za-z0-9_-]|$)'
 
-# Suspicious config patterns.
-# These are YELLOW in AI/editor config files because hooks/tasks/commands can be legitimate.
-CONFIG_REVIEW_PATTERN='SessionStart|PreToolUse|PostToolUse|Stop|SubagentStop|Notification|UserPromptSubmit|settings[.]local[.]json|setup[.]mjs|router_runtime[.]js|command[[:space:]]*:|curl[[:space:]]|wget[[:space:]]|bash[[:space:]]+-c|sh[[:space:]]+-c|node[[:space:]].*[.](mjs|js)|python3?[[:space:]]|npx[[:space:]]|npm[[:space:]]|yarn[[:space:]]|pnpm[[:space:]]|uvx[[:space:]]|pipx[[:space:]]'
+# Config review patterns.
+# Keep broad/common CI terms as INFO-level context; YELLOW is reserved for
+# executable hooks, direct script execution, shell downloads, or known attacker
+# file names. This reduces noise from normal GitHub Actions and notifications.
+CONFIG_INFO_PATTERN='Notification|command[[:space:]]*:|npm[[:space:]]|yarn[[:space:]]'
+CONFIG_REVIEW_PATTERN='SessionStart|PreToolUse|PostToolUse|Stop|SubagentStop|UserPromptSubmit|settings[.]local[.]json|setup[.]mjs|router_runtime[.]js|curl[[:space:]]|wget[[:space:]]|bash[[:space:]]+-c|sh[[:space:]]+-c|node[[:space:]].*[.](mjs|js)|python3?[[:space:]]|npx[[:space:]]|pnpm[[:space:]]|uvx[[:space:]]|pipx[[:space:]]|base64[[:space:]]|gh[[:space:]]+auth|GITHUB_TOKEN|NPM_TOKEN|AWS_ACCESS_KEY|AWS_SECRET_ACCESS_KEY|AZURE_|GOOGLE_APPLICATION_CREDENTIALS'
 
 # Suspicious process / command-line indicators.
 PROC_PATTERN='gh-token-monitor|router_init[.]js|tanstack_runner[.]js|bun_environment[.]js|setup_bun[.]js|filev2[.]getsession[.]org|seed[123][.]getsession[.]org|api[.]masscan[.]cloud|git-tanstack[.]com'
@@ -248,10 +272,10 @@ done
 section "1. 実行中プロセスの確認"
 
 PROC_HITS="$(
-  ps -axo pid=,command= 2>/dev/null \
-    | grep -E "$PROC_PATTERN" \
-    | grep -v -E 'grep|mini-shai-hulud-scan[.]sh' \
-    || true
+  ps -axo pid=,command= 2>/dev/null |
+    grep -E "$PROC_PATTERN" |
+    grep -v -E 'grep|mini-shai-hulud-scan[.]sh' ||
+    true
 )"
 
 if [ -n "$PROC_HITS" ]; then
@@ -386,21 +410,21 @@ for root in "${ROOTS[@]}"; do
   done < <(
     find "$root" \
       \( \
-        -path '*/.git' \
-        -o -path '*/node_modules' \
-        -o -path '*/.yarn/cache' \
-        -o -path '*/.pnpm-store' \
-        -o -path '*/.nuxt' \
-        -o -path '*/dist' \
-        -o -path '*/build' \
-        -o -path '*/coverage' \
-        -o -path '*/.Trash' \
-        -o -path '*/Library' \
-        -o -path '*/.cache' \
+      -path '*/.git' \
+      -o -path '*/node_modules' \
+      -o -path '*/.yarn/cache' \
+      -o -path '*/.pnpm-store' \
+      -o -path '*/.nuxt' \
+      -o -path '*/dist' \
+      -o -path '*/build' \
+      -o -path '*/coverage' \
+      -o -path '*/.Trash' \
+      -o -path '*/Library' \
+      -o -path '*/.cache' \
       \) -prune -o \
-      -type f -print 2>/dev/null \
-      | grep -E "$SUSPICIOUS_FILE_NAME_PATTERN" \
-      || true
+      -type f -print 2>/dev/null |
+      grep -E "$SUSPICIOUS_FILE_NAME_PATTERN" ||
+      true
   )
 done
 
@@ -471,6 +495,8 @@ for f in "${GLOBAL_CONFIG_FILES[@]}"; do
       "$f" \
       "身に覚えがあり内容が想定通りなら、正常な設定の可能性が高いです。"
     print_matches_only "$CONFIG_REVIEW_PATTERN" "$f"
+  elif grep -Eq "$CONFIG_INFO_PATTERN" "$f" 2>/dev/null; then
+    add_info "グローバル設定に通常の実行/通知系パターンがあります（YELLOW対象外）: $f"
   else
     add_info "グローバル設定を確認しました: $f"
   fi
@@ -542,9 +568,15 @@ scan_file_for_iocs() {
 
   # AI/editor/workflow configs with executable hooks/tasks/commands
   if is_ai_or_editor_config_file "$file"; then
+    if is_dependency_payload_file "$file" && is_github_workflow_file "$file"; then
+      return
+    fi
+
     config_matched="$(grep -Eo "$CONFIG_REVIEW_PATTERN" "$file" 2>/dev/null | sed 's/[[:space:]]*$//' | sort -u | head -30 | tr '\n' ',' | sed 's/,$//; s/,/, /g' || true)"
     if [ -n "$config_matched" ]; then
       add_project_config_review_hit "$file" "$config_matched"
+    elif grep -Eq "$CONFIG_INFO_PATTERN" "$file" 2>/dev/null; then
+      add_info "プロジェクト設定に通常の実行/通知系パターンがあります（YELLOW対象外）: $file"
     fi
   fi
 }
@@ -555,17 +587,17 @@ for root in "${ROOTS[@]}"; do
   done < <(
     find "$root" \
       \( \
-        -path '*/.git' \
-        -o -path '*/node_modules' \
-        -o -path '*/.yarn/cache' \
-        -o -path '*/.pnpm-store' \
-        -o -path '*/.nuxt' \
-        -o -path '*/dist' \
-        -o -path '*/build' \
-        -o -path '*/coverage' \
-        -o -path '*/.Trash' \
-        -o -path '*/Library' \
-        -o -path '*/.cache' \
+      -path '*/.git' \
+      -o -path '*/node_modules' \
+      -o -path '*/.yarn/cache' \
+      -o -path '*/.pnpm-store' \
+      -o -path '*/.nuxt' \
+      -o -path '*/dist' \
+      -o -path '*/build' \
+      -o -path '*/coverage' \
+      -o -path '*/.Trash' \
+      -o -path '*/Library' \
+      -o -path '*/.cache' \
       \) -prune -o \
       -type f \( "${TARGET_FILE_FIND_EXPR[@]}" \) -print0 2>/dev/null
   )
@@ -618,8 +650,8 @@ if exists_cmd npm; then
   NPM_PATH="$(command -v npm)"
   echo "npm のパス: $NPM_PATH"
   case "$NPM_PATH" in
-    *safe-chain*) add_info "npm は safe-chain shim 経由に見えます" ;;
-    *) add_info "npm は safe-chain shim 経由ではないようです" ;;
+  *safe-chain*) add_info "npm は safe-chain shim 経由に見えます" ;;
+  *) add_info "npm は safe-chain shim 経由ではないようです" ;;
   esac
 fi
 
@@ -627,8 +659,8 @@ if exists_cmd yarn; then
   YARN_PATH="$(command -v yarn)"
   echo "yarn のパス: $YARN_PATH"
   case "$YARN_PATH" in
-    *safe-chain*) add_info "yarn は safe-chain shim 経由に見えます" ;;
-    *) add_info "yarn は safe-chain shim 経由ではないようです" ;;
+  *safe-chain*) add_info "yarn は safe-chain shim 経由に見えます" ;;
+  *) add_info "yarn は safe-chain shim 経由ではないようです" ;;
   esac
 fi
 
@@ -636,8 +668,8 @@ if exists_cmd pnpm; then
   PNPM_PATH="$(command -v pnpm)"
   echo "pnpm のパス: $PNPM_PATH"
   case "$PNPM_PATH" in
-    *safe-chain*) add_info "pnpm は safe-chain shim 経由に見えます" ;;
-    *) add_info "pnpm は safe-chain shim 経由ではないようです" ;;
+  *safe-chain*) add_info "pnpm は safe-chain shim 経由に見えます" ;;
+  *) add_info "pnpm は safe-chain shim 経由ではないようです" ;;
   esac
 fi
 
@@ -645,8 +677,8 @@ if exists_cmd pip; then
   PIP_PATH="$(command -v pip)"
   echo "pip のパス: $PIP_PATH"
   case "$PIP_PATH" in
-    *safe-chain*) add_info "pip は safe-chain shim 経由に見えます" ;;
-    *) add_info "pip は safe-chain shim 経由ではないようです" ;;
+  *safe-chain*) add_info "pip は safe-chain shim 経由に見えます" ;;
+  *) add_info "pip は safe-chain shim 経由ではないようです" ;;
   esac
 fi
 
@@ -654,8 +686,8 @@ if exists_cmd uv; then
   UV_PATH="$(command -v uv)"
   echo "uv のパス: $UV_PATH"
   case "$UV_PATH" in
-    *safe-chain*) add_info "uv は safe-chain shim 経由に見えます" ;;
-    *) add_info "uv は safe-chain shim 経由ではないようです" ;;
+  *safe-chain*) add_info "uv は safe-chain shim 経由に見えます" ;;
+  *) add_info "uv は safe-chain shim 経由ではないようです" ;;
   esac
 fi
 
