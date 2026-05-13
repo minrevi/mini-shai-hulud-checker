@@ -14,6 +14,13 @@ Mini Shai-Hulud / Shai-Hulud-like supply-chain compromise の既知ローカル 
 
 ## 使い方
 
+リポジトリを取得します。
+
+```bash
+git clone https://github.com/minrevi/mini-shai-hulud-checker.git
+cd mini-shai-hulud-checker
+```
+
 実行権限を付けます。
 
 ```bash
