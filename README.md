@@ -32,6 +32,14 @@ chmod +x ./mini-shai-hulud-scan.sh
 ./mini-shai-hulud-scan.sh ~/dev ~/work ~/workspace ~/ghq
 ```
 
+実インストール済みの npm package も確認する場合は、`node_modules/**/package.json` を追加でスキャンします。
+
+```bash
+./mini-shai-hulud-scan.sh --deep-node-modules ~/dev ~/work ~/workspace ~/ghq
+```
+
+`--deep-node-modules` は重くなりやすいため、通常スキャンでは無効です。`node_modules` 配下では YELLOW ノイズを避けるため、強い IoC と悪性 package/version の完全一致のみを重視します。
+
 結果は日本語で標準出力に表示され、同時に以下の形式でログ保存されます。
 
 ```text
@@ -46,6 +54,7 @@ mini-shai-hulud-scan-<host>-<yyyymmdd-HHMMSS>.log
 - macOS LaunchAgent / Linux systemd user service / autostart の既知永続化パス
 - `router_init.js`、`tanstack_runner.js`、`bun_environment.js`、`setup_bun.js` などの不審ファイル名
 - 既知の exfil domain、キャンペーン文字列、悪性依存パターン
+- `iocs/malicious-packages.tsv` に記録された npm package/version との完全一致
 - 影響報告がある、またはレビューが必要なパッケージ scope / package name
 - Claude Code、VS Code、Cursor、Windsurf、MCP、GitHub Actions などの実行可能 hook / task / command パターン
   - 通常の通知設定や CI 上の `npm` / `yarn` 単体は YELLOW ではなく INFO として扱います。
