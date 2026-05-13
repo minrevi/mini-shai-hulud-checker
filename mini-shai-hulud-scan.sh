@@ -42,6 +42,9 @@ fi
 
 HOST_SAFE="$(hostname 2>/dev/null | tr -c 'A-Za-z0-9._-' '_' | sed 's/_$//')"
 REPORT="${PWD}/mini-shai-hulud-scan-${HOST_SAFE}-$(date +%Y%m%d-%H%M%S).log"
+SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd -P)"
+MALICIOUS_PACKAGES_TSV="${SCRIPT_DIR}/iocs/malicious-packages.tsv"
+DEEP_NODE_MODULES=0
 
 exec > >(tee "$REPORT") 2>&1
 
@@ -110,6 +113,95 @@ section() {
 
 exists_cmd() {
   command -v "$1" >/dev/null 2>&1
+}
+
+print_malicious_package_match() {
+  local file="$1"
+  local package="$2"
+  local version="$3"
+  local source="$4"
+  local note="$5"
+
+  echo "  ファイル: $file"
+  echo "  package: $package"
+  echo "  version: $version"
+  echo "  source: $source"
+  [ -n "$note" ] && echo "  note: $note"
+}
+
+emit_malicious_json_package_matches() {
+  local file="$1"
+
+  [ -f "$MALICIOUS_PACKAGES_TSV" ] || return
+  exists_cmd perl || return
+
+  perl -MJSON::PP -0777 -e '
+    my ($tsv, $file) = @ARGV;
+    open my $fh, "<", $tsv or exit 0;
+    my %bad;
+    while (my $line = <$fh>) {
+      chomp $line;
+      next if $line =~ /\A\s*(?:#|\z)/;
+      my ($eco, $pkg, $ver, $source, $note) = split /\t/, $line, 5;
+      next unless defined $eco && $eco eq "npm" && defined $pkg && defined $ver;
+      $bad{"$pkg\0$ver"} = [$source // "", $note // ""];
+    }
+
+    my $json = eval { JSON::PP->new->relaxed->decode($_) };
+    exit 0 if !$json || ref($json) ne "HASH";
+
+    my @found;
+    my $check = sub {
+      my ($pkg, $ver) = @_;
+      return unless defined $pkg && defined $ver;
+      my $hit = $bad{"$pkg\0$ver"} or return;
+      push @found, [$pkg, $ver, @$hit];
+    };
+
+    if ($file =~ /(?:package-lock|npm-shrinkwrap)[.]json\z/) {
+      if (ref($json->{packages}) eq "HASH") {
+        for my $path (keys %{$json->{packages}}) {
+          next unless $path =~ m{\Anode_modules/(.+)\z};
+          my $pkg = $1;
+          my $entry = $json->{packages}{$path};
+          next unless ref($entry) eq "HASH";
+          $check->($pkg, $entry->{version});
+        }
+      }
+      if (ref($json->{dependencies}) eq "HASH") {
+        for my $pkg (keys %{$json->{dependencies}}) {
+          my $entry = $json->{dependencies}{$pkg};
+          next unless ref($entry) eq "HASH";
+          $check->($pkg, $entry->{version});
+        }
+      }
+    } elsif ($file =~ /package[.]json\z/) {
+      $check->($json->{name}, $json->{version});
+    }
+
+    my %seen;
+    for my $hit (@found) {
+      my ($pkg, $ver, $source, $note) = @$hit;
+      next if $seen{"$pkg\0$ver"}++;
+      print join("\t", $pkg, $ver, $source, $note), "\n";
+    }
+  ' "$MALICIOUS_PACKAGES_TSV" "$file" 2>/dev/null || true
+}
+
+scan_json_file_for_malicious_package_versions() {
+  local file="$1"
+  local matches match package version source note
+
+  matches="$(emit_malicious_json_package_matches "$file")"
+  [ -n "$matches" ] || return
+
+  while IFS="$(printf '\t')" read -r package version source note; do
+    [ -n "$package" ] || continue
+    add_red "悪性 package/version と一致しました"
+    print_malicious_package_match "$file" "$package" "$version" "$source" "$note"
+  done <<EOF
+$matches
+EOF
 }
 
 dedupe_roots() {
@@ -192,11 +284,35 @@ is_github_workflow_file() {
 # Otherwise scan common developer directories plus current directory.
 
 ROOTS=()
+SCAN_ARGS=()
 
-if [ "$#" -gt 0 ]; then
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+  --deep-node-modules)
+    DEEP_NODE_MODULES=1
+    ;;
+  --)
+    shift
+    while [ "$#" -gt 0 ]; do
+      SCAN_ARGS+=("$1")
+      shift
+    done
+    break
+    ;;
+  -*)
+    add_yellow "未知のオプションです: $1"
+    ;;
+  *)
+    SCAN_ARGS+=("$1")
+    ;;
+  esac
+  shift
+done
+
+if [ "${#SCAN_ARGS[@]}" -gt 0 ]; then
   while IFS= read -r r; do
     ROOTS+=("$r")
-  done < <(dedupe_roots "$@")
+  done < <(dedupe_roots "${SCAN_ARGS[@]}")
 else
   CANDIDATES=(
     "$PWD"
@@ -254,6 +370,11 @@ echo "開始日時: $(date)"
 echo "ホスト: ${HOST_SAFE}"
 echo "ユーザー: ${USER:-unknown}"
 echo "レポート: ${REPORT}"
+if [ "$DEEP_NODE_MODULES" -eq 1 ]; then
+  echo "node_modules deep scan: enabled"
+else
+  echo "node_modules deep scan: disabled"
+fi
 echo
 
 if [ "${#ROOTS[@]}" -eq 0 ]; then
@@ -556,6 +677,12 @@ scan_file_for_iocs() {
     return
   fi
 
+  case "$file" in
+  */package.json | */package-lock.json | */npm-shrinkwrap.json)
+    scan_json_file_for_malicious_package_versions "$file"
+    ;;
+  esac
+
   # Risky packages / scopes
   matched="$(grep -Eo "$RISKY_PACKAGE_PATTERN" "$file" 2>/dev/null | sed 's/[[:space:]]*$//' | sort -u | head -30 | tr '\n' ' ' || true)"
   if [ -n "$matched" ]; then
@@ -604,6 +731,51 @@ for root in "${ROOTS[@]}"; do
 done
 
 flush_project_config_review_hits
+
+if [ "$DEEP_NODE_MODULES" -eq 1 ]; then
+  section "5b. node_modules deep scan"
+
+  NODE_MODULES_PACKAGE_HITS=0
+
+  if [ ! -f "$MALICIOUS_PACKAGES_TSV" ]; then
+    add_yellow "悪性 package/version TSV が見つからないため、node_modules の version 照合をスキップしました: $MALICIOUS_PACKAGES_TSV"
+  elif ! exists_cmd perl; then
+    add_yellow "perl が見つからないため、node_modules の package.json version 照合をスキップしました"
+  else
+    for root in "${ROOTS[@]}"; do
+      while IFS= read -r -d '' f; do
+        NODE_MODULES_PACKAGE_HITS=$((NODE_MODULES_PACKAGE_HITS + 1))
+
+        if grep -Eq "$STRONG_IOC_PATTERN" "$f" 2>/dev/null; then
+          add_red "node_modules package.json 内に強い IoC が見つかりました: $f"
+          print_matches_only "$STRONG_IOC_PATTERN" "$f"
+        fi
+
+        scan_json_file_for_malicious_package_versions "$f"
+      done < <(
+        find "$root" \
+          -path '*/node_modules/*' \
+          -type f \
+          -name 'package.json' \
+          -print0 2>/dev/null
+      )
+
+      while IFS= read -r f; do
+        add_red "node_modules 内に不審なファイル名が見つかりました: $f"
+      done < <(
+        find "$root" \
+          -path '*/node_modules/*' \
+          -type f \
+          \( -name 'router_init.js' -o -name 'tanstack_runner.js' -o -name 'bun_environment.js' -o -name 'setup_bun.js' \) \
+          -print 2>/dev/null
+      )
+    done
+
+    add_info "node_modules package.json を確認しました: ${NODE_MODULES_PACKAGE_HITS}件"
+  fi
+else
+  add_info "node_modules deep scan は無効です。実インストール済み package を確認する場合は --deep-node-modules を指定してください。"
+fi
 
 # -----------------------------
 # 6. Shell history hint

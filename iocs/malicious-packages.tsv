@@ -1,0 +1,111 @@
+# Mini Shai-Hulud malicious package versions.
+#
+# Format:
+# ecosystem<TAB>package<TAB>version<TAB>source<TAB>note
+#
+# Matching policy:
+# - Treat exact ecosystem/package/version matches as RED for lockfile scans.
+# - Keep this file append-only where possible; add new source URLs when updating.
+#
+# Sources:
+# - GitHub Advisory Database GHSA-g7cv-rxg3-hmpx / CVE-2026-45321
+#   https://github.com/advisories/GHSA-g7cv-rxg3-hmpx
+# - TanStack postmortem
+#   https://tanstack.com/blog/npm-supply-chain-compromise-postmortem
+# - Socket research article, updated campaign notes
+#   https://socket.dev/blog/tanstack-npm-packages-compromised-mini-shai-hulud-supply-chain-attack
+#
+ecosystem	package	version	source	note
+npm	@tanstack/arktype-adapter	1.166.12	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/arktype-adapter	1.166.15	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/eslint-plugin-router	1.161.9	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/eslint-plugin-router	1.161.12	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/eslint-plugin-start	0.0.4	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/eslint-plugin-start	0.0.7	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/history	1.161.9	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/history	1.161.12	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/nitro-v2-vite-plugin	1.154.12	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/nitro-v2-vite-plugin	1.154.15	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-router	1.169.5	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-router	1.169.8	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-router-devtools	1.166.16	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-router-devtools	1.166.19	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-router-ssr-query	1.166.15	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-router-ssr-query	1.166.18	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start	1.167.68	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start	1.167.71	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start-client	1.166.51	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start-client	1.166.54	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start-rsc	0.0.47	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start-rsc	0.0.50	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start-server	1.166.55	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/react-start-server	1.166.58	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-cli	1.166.46	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-cli	1.166.49	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-core	1.169.5	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-core	1.169.8	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-devtools	1.166.16	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-devtools	1.166.19	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-devtools-core	1.167.6	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-devtools-core	1.167.9	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-generator	1.166.45	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-generator	1.166.48	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-plugin	1.167.38	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-plugin	1.167.41	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-ssr-query-core	1.168.3	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-ssr-query-core	1.168.6	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-utils	1.161.11	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-utils	1.161.14	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-vite-plugin	1.166.53	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/router-vite-plugin	1.166.56	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-router	1.169.5	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-router	1.169.8	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-router-devtools	1.166.16	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-router-devtools	1.166.19	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-router-ssr-query	1.166.15	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-router-ssr-query	1.166.18	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-start	1.167.65	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-start	1.167.68	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-start-client	1.166.50	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-start-client	1.166.53	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-start-server	1.166.54	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/solid-start-server	1.166.57	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-client-core	1.168.5	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-client-core	1.168.8	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-fn-stubs	1.161.9	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-fn-stubs	1.161.12	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-plugin-core	1.169.23	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-plugin-core	1.169.26	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-server-core	1.167.33	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-server-core	1.167.36	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-static-server-functions	1.166.44	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-static-server-functions	1.166.47	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-storage-context	1.166.38	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/start-storage-context	1.166.41	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/valibot-adapter	1.166.12	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/valibot-adapter	1.166.15	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/virtual-file-routes	1.161.10	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/virtual-file-routes	1.161.13	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-router	1.169.5	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-router	1.169.8	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-router-devtools	1.166.16	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-router-devtools	1.166.19	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-router-ssr-query	1.166.15	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-router-ssr-query	1.166.18	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-start	1.167.61	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-start	1.167.64	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-start-client	1.166.46	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-start-client	1.166.49	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-start-server	1.166.50	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/vue-start-server	1.166.53	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/zod-adapter	1.166.12	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@tanstack/zod-adapter	1.166.15	GHSA-g7cv-rxg3-hmpx	TanStack affected version
+npm	@opensearch-project/opensearch	3.5.3	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised npm version
+npm	@opensearch-project/opensearch	3.6.2	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised npm version
+npm	@opensearch-project/opensearch	3.7.0	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised npm version
+npm	@opensearch-project/opensearch	3.8.0	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised npm version
+npm	@squawk/mcp	0.9.5	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised npm version
+npm	@squawk/weather	0.5.10	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised npm version
+npm	@squawk/flightplan	0.5.6	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised npm version
+pypi	mistralai	2.4.6	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised PyPI version
+pypi	guardrails-ai	0.10.1	socket-mini-shai-hulud-2026-05-12	Socket explicitly listed compromised PyPI version
