@@ -55,6 +55,8 @@ mini-shai-hulud-scan-<host>-<yyyymmdd-HHMMSS>.log
 - 既知の exfil domain、キャンペーン文字列、悪性依存パターン
 - 影響報告がある、またはレビューが必要なパッケージ scope / package name
 - Claude Code、VS Code、Cursor、Windsurf、MCP、GitHub Actions などの実行可能 hook / task / command パターン
+  - 通常の通知設定や CI 上の `npm` / `yarn` 単体は YELLOW ではなく INFO として扱います。
+  - `vendor/` や `node_modules/` 配下に同梱された GitHub Actions は、強い IoC がない限り YELLOW 対象にしません。
 - 依存インストール・更新コマンドのシェル履歴ヒント
 - `safe-chain` の導入状況
 
@@ -77,6 +79,8 @@ mini-shai-hulud-scan-<host>-<yyyymmdd-HHMMSS>.log
 感染確定ではありません。この結果とレポート保存先を担当者へ報告してください。自分でファイル削除や設定変更をせず、担当者の確認を待ってください。
 
 特に `.github/workflows/*.yml` やエディタ設定は、通常の開発用自動処理でも検出されます。この種類の検出はファイルごとではなく、1つのブロックに集約して表示されます。表示された設定が業務上正しいものかは、このスキャンだけでは確定できません。
+
+YELLOW は、単なる通知や通常の package manager 実行ではなく、shell 実行、外部取得、直接 script 実行、credential 参照など、レビュー優先度が高いパターンに絞っています。
 
 必要に応じて、クリーンな環境や CI 上で再現確認します。
 
