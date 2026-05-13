@@ -12,19 +12,6 @@ Mini Shai-Hulud / Shai-Hulud-like supply-chain compromise の既知ローカル 
 - `YELLOW` は感染確定ではありません。正当なパッケージや設定でも検出される可能性があります。
 - `RED` が出た場合は、同じ端末上でトークン失効や証跡削除を行わず、証拠保全とセキュリティ担当への連絡を優先してください。
 
-## 検出対象
-
-主に以下を確認します。
-
-- 既知の不審プロセスやコマンドライン
-- macOS LaunchAgent / Linux systemd user service / autostart の既知永続化パス
-- `router_init.js`、`tanstack_runner.js`、`bun_environment.js`、`setup_bun.js` などの不審ファイル名
-- 既知の exfil domain、キャンペーン文字列、悪性依存パターン
-- 影響報告がある、またはレビューが必要なパッケージ scope / package name
-- Claude Code、VS Code、Cursor、Windsurf、MCP、GitHub Actions などの実行可能 hook / task / command パターン
-- 依存インストール・更新コマンドのシェル履歴ヒント
-- `safe-chain` の導入状況
-
 ## 使い方
 
 実行権限を付けます。
@@ -50,6 +37,19 @@ chmod +x ./mini-shai-hulud-scan.sh
 ```text
 mini-shai-hulud-scan-<host>-<yyyymmdd-HHMMSS>.log
 ```
+
+## 検出対象
+
+主に以下を確認します。
+
+- 既知の不審プロセスやコマンドライン
+- macOS LaunchAgent / Linux systemd user service / autostart の既知永続化パス
+- `router_init.js`、`tanstack_runner.js`、`bun_environment.js`、`setup_bun.js` などの不審ファイル名
+- 既知の exfil domain、キャンペーン文字列、悪性依存パターン
+- 影響報告がある、またはレビューが必要なパッケージ scope / package name
+- Claude Code、VS Code、Cursor、Windsurf、MCP、GitHub Actions などの実行可能 hook / task / command パターン
+- 依存インストール・更新コマンドのシェル履歴ヒント
+- `safe-chain` の導入状況
 
 ## 終了コード
 
